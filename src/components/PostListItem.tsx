@@ -10,12 +10,13 @@ type PostListItemProps = {
   isDetailedPost?: boolean;
 };
 
-const PostListItem = ({ post, isDetailedPost = true }: PostListItemProps) => {
+const PostListItem = ({ post, isDetailedPost }: PostListItemProps) => {
   const myVote = { value: 3 };
   const isUpvoted = myVote?.value === 1;
   const isDownvoted = myVote?.value === -1;
   const shouldShowImage = isDetailedPost || post.image;
   const shouldShowDescription = isDetailedPost || !post.image;
+
   return (
     <Link href={`/post/${post.id}`} asChild>
       <Pressable
@@ -113,7 +114,7 @@ const PostListItem = ({ post, isDetailedPost = true }: PostListItemProps) => {
                   alignSelf: "center",
                 }}
               >
-                2{/* {post.upvotes[0].sum || 0} */}
+                299{/* {post.upvotes[0].sum || 0} */}
               </Text>
               <View
                 style={{
@@ -146,7 +147,7 @@ const PostListItem = ({ post, isDetailedPost = true }: PostListItemProps) => {
                   alignSelf: "center",
                 }}
               >
-                4{/* {post.nr_of_comments?.[0].count} */}
+                14{/* {post.nr_of_comments?.[0].count} */}
               </Text>
             </View>
           </View>
