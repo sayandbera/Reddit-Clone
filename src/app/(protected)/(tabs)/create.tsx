@@ -9,17 +9,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
-import groups from "@/assets/data/groups.json";
+import { useAtom } from "jotai";
+import { selectedGroupAtom } from "@/atoms";
 
 const create = () => {
   const [title, setTitle] = useState<string>("");
   const [bodyText, setBodyText] = useState<string>("");
   const [image, setImage] = useState<string | null>(null);
+  const [group, setGroup] = useAtom(selectedGroupAtom);
+
   const isPending = false;
   const onPostClick = async () => {
     // let imagePath = image ? await uploadImage(image, supabase) : undefined;
@@ -28,10 +30,9 @@ const create = () => {
   const goBack = () => {
     setTitle("");
     setBodyText("");
-    // setGroup(null);
+    setGroup(null);
     router.back();
   };
-  const group = groups[2];
 
   return (
     <SafeAreaView
@@ -60,13 +61,13 @@ const create = () => {
           style={{ paddingVertical: 12 }}
         >
           {/* COMMUNITY SELECTOR */}
-          <Link href={"groupSelector"} asChild>
+          <Link href={"group-selector"} asChild>
             <Pressable style={styles.communityContainer}>
               {group ? (
                 <>
                   <Image
                     source={{ uri: group.image }}
-                    style={{ width: 20, height: 20, borderRadius: 10 }}
+                    style={{ width: 24, height: 24, borderRadius: 10 }}
                   />
                   <Text style={{ fontWeight: "600" }}>{group.name}</Text>
                 </>
@@ -126,7 +127,8 @@ const styles = StyleSheet.create({
   communityContainer: {
     backgroundColor: "#EDEDED",
     flexDirection: "row",
-    padding: 10,
+    padding: 8,
+    alignItems: "center",
     borderRadius: 20,
     gap: 5,
     alignSelf: "flex-start",
