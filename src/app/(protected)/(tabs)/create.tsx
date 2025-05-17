@@ -121,7 +121,7 @@ const create = () => {
             placeholder="Title"
             style={{ fontSize: 20, fontWeight: "600", paddingVertical: 20 }}
             value={title}
-            onChangeText={setTitle}
+            onChangeText={(newTitle) => setTitle(newTitle)}
             multiline
             autoFocus
             scrollEnabled={false}

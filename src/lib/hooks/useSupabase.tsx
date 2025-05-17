@@ -1,51 +1,46 @@
-// import { AppState } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "../types/database.types";
 import { useSession } from "@clerk/clerk-expo";
+import { useMemo } from "react";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
-// TODO: check if it creates a client everytime we use it
 export const useSupabase = () => {
   const { session } = useSession();
 
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      storage: AsyncStorage,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-    },
-    global: {
-      // Get the custom Supabase token from Clerk
-      fetch: async (url, options = {}) => {
-        // The Clerk `session` object has the getToken() method
-        const clerkToken = await session?.getToken({
-          // Pass the name of the JWT template you created in the Clerk Dashboard
-          // For this tutorial, you named it 'supabase'
-          template: "supabase",
-        });
-
-        // Insert the Clerk Supabase token into the headers
-        const headers = new Headers(options?.headers);
-        headers.set("Authorization", `Bearer ${clerkToken}`);
-
-        // Call the default fetch
-        return fetch(url, {
-          ...options,
-          headers,
-        });
+  // Memoize the Supabase client to prevent re-creation on every render
+  // The client will be re-created if the Clerk session changes
+  const supabaseClient = useMemo(() => {
+    return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        storage: AsyncStorage, // Can be kept for general Supabase storage needs, though not critical for Clerk-managed sessions
+        autoRefreshToken: false, // Clerk handles token refreshing
+        persistSession: false, // Clerk handles session persistence
+        detectSessionInUrl: false,
       },
-    },
-  });
-};
+      global: {
+        // Get the custom Supabase token from Clerk for each request
+        fetch: async (url, options = {}) => {
+          const clerkToken = await session?.getToken({
+            template: "supabase",
+          });
 
-// AppState.addEventListener("change", (state) => {
-//   if (state === "active") {
-//     supabase.auth.startAutoRefresh();
-//   } else {
-//     supabase.auth.stopAutoRefresh();
-//   }
-// });
+          const headers = new Headers(options?.headers);
+          if (clerkToken) {
+            headers.set("Authorization", `Bearer ${clerkToken}`);
+          }
+
+          // Call the original fetch with the (potentially) modified headers
+          return fetch(url, {
+            ...options,
+            headers,
+          });
+        },
+      },
+    });
+  }, [session]); // Dependency: re-create client if session changes
+
+  return supabaseClient;
+};

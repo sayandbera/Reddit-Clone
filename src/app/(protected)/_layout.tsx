@@ -27,14 +27,7 @@ export default function ProtectedLayout() {
               onPress={() => router.back()}
             />
           ),
-          headerRight: () => (
-            <View style={{ flexDirection: "row", gap: 16 }}>
-              <AntDesign name="search1" size={22} color="white" />
-              <MaterialIcons name="sort" size={26} color="white" />
-              <Entypo name="dots-three-horizontal" size={22} color="white" />
-            </View>
-          ),
-          animation: "slide_from_bottom",
+          animation: "fade_from_bottom",
         }}
       />
     </Stack>
