@@ -6,10 +6,14 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "gen-types": "npx supabase gen types typescript --project-id pbgffaovuznkzzhwpupp > src/lib/types/database.types.ts"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.11.4",
+    "@react-native-async-storage/async-storage": "2.1.2",
+    "@supabase/supabase-js": "^2.49.4",
+    "@tanstack/react-query": "^5.76.1",
     "date-fns": "^4.1.0",
     "expo": "~53.0.9",
     "expo-constants": "~17.1.6",

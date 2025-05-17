@@ -1,9 +1,16 @@
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
-import { Post } from "../types";
+// import { Post } from "../lib/types";
 import { Link } from "expo-router";
 import { formatDistanceToNowStrict } from "date-fns";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Tables } from "@/lib/types/database.types";
+
+type Post = Tables<"posts"> & {
+  group: Tables<"groups">;
+  // user: Tables<"users">;
+  // upvotes: { sum: number }[];
+};
 
 type PostListItemProps = {
   post: Post;
@@ -32,7 +39,7 @@ const PostListItem = ({ post, isDetailedPost }: PostListItemProps) => {
         {/* HEADER */}
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Image
-            source={{ uri: post.group.image }}
+            source={{ uri: post.group.image || undefined }}
             style={{ width: 24, height: 24, borderRadius: 30, marginRight: 5 }}
           />
           <View>
@@ -45,12 +52,12 @@ const PostListItem = ({ post, isDetailedPost }: PostListItemProps) => {
               <Text
                 style={{ color: "grey", fontSize: 13, alignSelf: "flex-start" }}
               >
-                {formatDistanceToNowStrict(new Date(post.created_at))}
+                {formatDistanceToNowStrict(new Date(post.created_at!))}
               </Text>
             </View>
             {isDetailedPost && (
               <Text style={{ fontSize: 13, color: "#2E5DAA" }}>
-                {post.user?.name}
+                u/user01{/* {post.user?.name} */}
               </Text>
             )}
           </View>

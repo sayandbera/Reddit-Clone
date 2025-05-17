@@ -9,12 +9,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import { useAtom } from "jotai";
-import { selectedGroupAtom } from "@/atoms";
+import { selectedGroupAtom } from "@/lib/stores/atoms";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { insertPost } from "@/lib/services/postService";
+import { useSupabase } from "@/lib/hooks/useSupabase";
 
 const create = () => {
   const [title, setTitle] = useState<string>("");
@@ -22,10 +26,42 @@ const create = () => {
   const [image, setImage] = useState<string | null>(null);
   const [group, setGroup] = useAtom(selectedGroupAtom);
 
-  const isPending = false;
+  const queryClient = useQueryClient();
+  const supabase = useSupabase();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (_image: string | undefined) => {
+      if (!group) {
+        throw new Error("Please select a group");
+      }
+      if (!title) {
+        throw new Error("Title is required");
+      }
+
+      return insertPost(
+        {
+          title,
+          description: bodyText,
+          group_id: group.id,
+          // image,
+        },
+        supabase
+      );
+    },
+    onSuccess: (_data) => {
+      // invalidate queries that might have been affected by inserting a post
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      goBack();
+    },
+    onError: (error) => {
+      console.log(error);
+      Alert.alert("Failed to insert post", error.message);
+    },
+  });
+
   const onPostClick = async () => {
     // let imagePath = image ? await uploadImage(image, supabase) : undefined;
-    // mutate(imagePath);
+    mutate(undefined);
   };
   const goBack = () => {
     setTitle("");
@@ -66,7 +102,7 @@ const create = () => {
               {group ? (
                 <>
                   <Image
-                    source={{ uri: group.image }}
+                    source={{ uri: group.image || undefined }}
                     style={{ width: 24, height: 24, borderRadius: 10 }}
                   />
                   <Text style={{ fontWeight: "600" }}>{group.name}</Text>

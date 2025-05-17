@@ -7,31 +7,58 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import groups from "@/assets/data/groups.json";
-import { Group } from "@/types";
+// import groups from "@/assets/data/groups.json";
+// import { Group } from "@/lib/types";
 import { useSetAtom } from "jotai";
-import { selectedGroupAtom } from "@/atoms";
+import { selectedGroupAtom } from "@/lib/stores/atoms";
+import { useQuery } from "@tanstack/react-query";
+import { fetchGroups } from "@/lib/services/groupService";
+import { Tables } from "@/lib/types/database.types";
+import { useSupabase } from "@/lib/hooks/useSupabase";
+
+type Group = Tables<"groups">;
 
 export default function GroupSelector() {
+  const supabase = useSupabase();
   const [searchValue, setSearchValue] = useState<string>("");
   const setGroup = useSetAtom(selectedGroupAtom);
-  const filteredGroups = useMemo(
-    () =>
-      groups.filter((group) =>
-        group.name.toLowerCase().includes(searchValue.toLowerCase())
-      ),
-    [searchValue]
-  );
+  // const filteredGroups = useMemo(
+  //   () =>
+  //     groups.filter((group) =>
+  //       group.name.toLowerCase().includes(searchValue.toLowerCase())
+  //     ),
+  //   [searchValue]
+  // );
+
+  const {
+    data: groups,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["groups", { searchValue }],
+    queryFn: () => fetchGroups(searchValue, supabase),
+    staleTime: 10_000,
+    placeholderData: (previousData) => previousData,
+  });
 
   const onGroupSelected = (group: Group) => {
     setGroup(group);
     router.back();
   };
+
+  if (isLoading) {
+    return <ActivityIndicator />;
+  }
+
+  if (error || !groups) {
+    return <Text>Error fetching groups</Text>;
+  }
 
   const renderListHeader = () => (
     <>
@@ -110,7 +137,7 @@ export default function GroupSelector() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0} // Adjust if needed
       >
         <FlatList
-          data={filteredGroups}
+          data={groups}
           ListHeaderComponent={renderListHeader}
           showsVerticalScrollIndicator={false}
           keyExtractor={(item) => item.id}
@@ -121,7 +148,7 @@ export default function GroupSelector() {
               style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
             >
               <Image
-                source={{ uri: item.image }}
+                source={{ uri: item.image || undefined }}
                 style={{ width: 40, aspectRatio: 1, borderRadius: 20 }}
               />
               <Text style={{ fontWeight: "600", fontSize: 15 }}>
